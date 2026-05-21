@@ -810,13 +810,13 @@ function renderDailyPasswords() {
   }
 
   const staleNotice = dataDate && dataDate !== getTodayDate()
-    ? `<div class="empty daily-empty" style="display:block;padding:12px 0">今日地图密码暂未更新，当前显示最近一次收录结果。数据日期：${escapeHtml(dataDate)}</div>`
+    ? `<div class="daily-password-notice">今日地图密码暂未更新，当前显示最近一次收录结果。数据日期：${escapeHtml(dataDate)}</div>`
     : "";
   const updateNotice = lastUpdated
-    ? `<div class="daily-meta" style="margin-bottom:12px"><span>更新时间：${escapeHtml(lastUpdated)}</span></div>`
+    ? `<div class="daily-password-updated">更新时间：${escapeHtml(lastUpdated)}</div>`
     : "";
 
-  grid.innerHTML = list.map(item => {
+  const cardsHtml = list.map(item => {
     const status = getDailyPasswordStatus(item);
     const isFresh = status === "今日已更新";
     const isPending = status === "待更新";
@@ -832,7 +832,7 @@ function renderDailyPasswords() {
       </article>
     `;
   }).join("");
-  grid.innerHTML = `${staleNotice}${updateNotice}${grid.innerHTML}`;
+  grid.innerHTML = `${staleNotice}${updateNotice}<div class="daily-password-list">${cardsHtml}</div>`;
 
   grid.querySelectorAll("[data-password]").forEach(btn => {
     btn.addEventListener("click", (event) => {

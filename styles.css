@@ -466,6 +466,11 @@ h1 {
   position: relative;
 }
 
+.daily-section {
+  display: flex;
+  flex-direction: column;
+}
+
 .toolbar::before {
   content: "";
   position: absolute;
@@ -627,9 +632,29 @@ h1 {
 }
 
 .daily-password-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.daily-password-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.daily-password-updated,
+.daily-password-notice {
+  width: 100%;
+  color: rgba(255,255,255,.66);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.daily-password-notice {
+  color: var(--orange);
 }
 
 .daily-password-card {
@@ -1257,7 +1282,11 @@ h1 {
   }
 
   .daily-password-grid {
-    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .daily-password-list {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 
   .daily-copy-btn {
