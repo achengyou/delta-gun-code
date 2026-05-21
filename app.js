@@ -165,6 +165,8 @@ const weaponCategoryMap = {
 const demoCodeKeywords = ["示例码", "示例", "demo", "测试码"];
 const SHOW_ADMIN = false;
 const ADMIN_PASSWORD = "CHANGE_ME_BEFORE_LOCAL_DEBUG";
+const DAILY_PASSWORD_REMOTE_URL = "https://raw.githubusercontent.com/achengyou/delta-gun-code/main/data/daily-passwords.json";
+const DAILY_PASSWORD_LOCAL_URL = "./data/daily-passwords.json";
 const fallbackDailyPasswords = [];
 
 let state = {
@@ -191,9 +193,8 @@ async function loadPublicCodes() {
 
 async function loadDailyPasswords() {
   try {
-    const response = await fetch(`./data/daily-passwords.json?t=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) throw new Error("fetch failed");
-    const data = await response.json();
+    const data = await fetchDailyPasswordJson(DAILY_PASSWORD_REMOTE_URL)
+      .catch(() => fetchDailyPasswordJson(DAILY_PASSWORD_LOCAL_URL));
     const sourceList = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
     const normalized = sourceList
       .map(item => normalizeDailyPasswordItem(item))
@@ -214,6 +215,13 @@ async function loadDailyPasswords() {
       error: true
     };
   }
+}
+
+async function fetchDailyPasswordJson(url) {
+  const separator = url.includes("?") ? "&" : "?";
+  const response = await fetch(`${url}${separator}t=${Date.now()}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`fetch failed: ${response.status}`);
+  return response.json();
 }
 
 async function getInitialCodes() {
