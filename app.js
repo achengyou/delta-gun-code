@@ -561,6 +561,40 @@ function normalize(text) {
   return cleanText(text).toLowerCase();
 }
 
+function normalizeSearchText(text) {
+  return normalize(text).replace(/\s+/g, " ");
+}
+
+function compactSearchText(text) {
+  return normalize(text).replace(/\s+/g, "");
+}
+
+function matchesSearchQuery(item, query) {
+  const q = normalizeSearchText(query);
+  if (!q) return true;
+
+  const fields = [
+    item.weapon,
+    item.category,
+    item.mode,
+    item.title,
+    item.code,
+    item.tags?.join(" "),
+    item.description,
+    item.budget,
+    item.playstyle,
+    item.season
+  ];
+  const fullText = normalizeSearchText(fields.join(" "));
+  const compactFullText = compactSearchText(fields.join(""));
+  const compactQuery = compactSearchText(q);
+  const tokens = q.split(/\s+/).filter(Boolean);
+
+  return fullText.includes(q)
+    || compactFullText.includes(compactQuery)
+    || tokens.every(token => fullText.includes(token) || compactFullText.includes(compactSearchText(token)));
+}
+
 function parseCsvLine(line) {
   const cells = [];
   let current = "";
@@ -696,19 +730,7 @@ function getFilteredCodes() {
     codes = codes.filter(item => normalize(item.weapon) === normalize(state.selectedWeapon));
   }
   if (state.query) {
-    const q = normalize(state.query);
-    codes = codes.filter(item => {
-      const fullText = [
-        item.weapon,
-        item.category,
-        item.mode,
-        item.title,
-        item.code,
-        item.tags?.join(" "),
-        item.description
-      ].join(" ");
-      return normalize(fullText).includes(q);
-    });
+    codes = codes.filter(item => matchesSearchQuery(item, state.query));
   }
 
   if (state.sort === "latest") {
@@ -934,12 +956,7 @@ async function copyCodeById(id, event) {
   if (!item) return;
 
   await copyText(item.code, "已复制改枪码");
-
-  item.copyCount = Number(item.copyCount || 0) + 1;
-  saveCodes(codes);
-
-  updateCopyCountText(id);
-  renderHotCodes();
+  showCopiedButtonState(event?.currentTarget);
 }
 
 function saveCodes(codes) {
@@ -1111,6 +1128,21 @@ function renderAll(withFilters = true) {
   renderInvalidFeedbackList();
 }
 
+function showCopiedButtonState(button) {
+  if (!button) return;
+  const oldText = button.textContent;
+  button.textContent = "已复制";
+  clearTimeout(button.copyResetTimer);
+  button.copyResetTimer = setTimeout(() => {
+    button.textContent = oldText || "复制改枪码";
+  }, 1400);
+}
+
+function renderSearchResults() {
+  renderWeapons();
+  renderCodes();
+}
+
 function openModal(id) {
   if (id === "adminModal" && !SHOW_ADMIN) return;
   document.getElementById(id).classList.add("show");
@@ -1125,15 +1157,14 @@ function setupEvents() {
   if (adminButton) adminButton.style.display = SHOW_ADMIN ? "" : "none";
 
   document.getElementById("searchInput").addEventListener("input", (e) => {
-    state.query = e.target.value;
-    renderCodes();
+    state.query = e.target.value.trim();
+    renderSearchResults();
   });
 
   document.getElementById("clearSearchBtn").addEventListener("click", () => {
     state.query = "";
-    state.selectedWeapon = "";
     document.getElementById("searchInput").value = "";
-    renderAll();
+    renderSearchResults();
   });
 
   document.getElementById("showAllWeaponsBtn").addEventListener("click", () => {
