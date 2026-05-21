@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "sync:daily-passwords": "node scripts/sync-daily-passwords-orzice.js"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}
